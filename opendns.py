@@ -49,24 +49,17 @@ def send_to_es(json_item):
 	# initialize a connection to multiple hosts if needed
 	es = Elasticsearch(host="192.168.1.144")
 	
-	# Define a function to create the payload
+	
 	data = {
-	# private fuction or get and set parameters to 
-	# arguments can be passed or loaded from a configuration file
 	"_index": "opendns",
-	# dynamic input for type
 	"_type": "logs",
-	# private function that responds a random number
-	# post function allows for indivual ids, wasting time
 	"_id" : ''.join(random.choice('0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZ') for i in range(64)),
-	# automatically implemented with post if not needed or the `_id`
 	"@timestamp" : datetime.utcnow(),
 	"origin" : json_item['origin'],
 	"domain" : json_item['domain'],
 	"handlingCode" : json_item['handling'],
 	"queryType" : json_item['queryType'],
 	"blockCategories" : json_item['blockCategories'],
-	# this can be implmenetd as a feedback loop to query important records of note
 	"remoteIp" : json_item['remoteIp'],
 	"clientIp" : json_item['clientIp'],
 	"originType" : json_item['originType'],
@@ -77,16 +70,12 @@ def send_to_es(json_item):
 	
 	opendns_data.append(data) 
 
-	# function
 	if (len(opendns_data) % 10000 == 0):
 		helpers.bulk(es, opendns_data,timeout=120)
 		opendns_data = []
 	if len(opendns_data) > 0:
 		helpers.bulk(es, opendns_data)
 
-# load from a yaml input, this makes it separate of the application that can be updated
-# this will also allow for test cases to be developed that would respond with failure or
-# positive test cases
 def parse_handling_codes(json_item):
 	parsed_handling_codes = []
 	if json_item['handling'] == 2049:
@@ -110,9 +99,7 @@ def parse_handling_codes(json_item):
 	json_item["handling"] = parsed_handling_codes
 	send_to_es(json_item)
 	print json_item
-# load from a yaml input, this makes it separate of the application that can be updated
-# this will also allow for test cases to be developed that would respond with failure or
-# positive test cases
+
 def parse_categoies(json_item):
 	parsed_categories = []
 	for category in json_item['categories']:
@@ -331,12 +318,11 @@ def login():
 	r = s.get("https://login.opendns.com", headers=headers)
 	a = 'name="formtoken" value="'
 	b = '/>'
-	# private function that does more if needed, can be split up and added to easily
+
 	formToken = r.text.split(a)[1].split(b)[0].split('"')[0]
 
 	#Setup our Login Data
 
-	# generate the object and hash if needed within the application
 	login_data = {
 		"username" : username,
 		"password" : password,
@@ -383,7 +369,6 @@ def search_opendns(categories,handlingCode):
 	'handlingCode': handlingCode
 	}
 
-	# implment a logger for more
 	print "Searching for category = " + str(categories) + " and handlingcode = " + str(handlingCode)
 	#Build Search URL 
 	search_URL = 'https://api.opendns.com/v3/organizations/' + str(organizations_id) + "/reports/activitysearch?offset=0&limit=" + str(search_limit) + "&filters=" + json.dumps(search_criteria) + '&&outputFormat=jsonHttpStatusOverride&api-session=' + str(apiToken) 
